@@ -7,56 +7,74 @@ const STEPS = [
     n: "01",
     icon: "/brand/icon-rocket.png",
     title: "Create an invoice",
-    body: "Name the business, describe the work, set a USD amount. Ten seconds, no account needed.",
+    body: "Add the business name, a line-item description, the amount in USD, and an optional webhook URL.",
   },
   {
     n: "02",
     icon: "/brand/icon-code.png",
-    title: "Share the pay URL",
-    body: "You get an x402 endpoint. Paste it anywhere — an email, a chat, or straight to an agent.",
+    title: "Share the payment URL",
+    body: "Every invoice returns a dedicated x402 endpoint plus a public receipt URL you can send anywhere.",
   },
   {
     n: "03",
     icon: "/brand/icon-check.png",
-    title: "Agent pays, you approve",
-    body: "The agent hits the URL, gets a 402, and pays USDC on Base. You approve once with a passkey.",
+    title: "Agent pays",
+    body: "The payer requests the endpoint and receives an HTTP 402 with exact USDC requirements on Base. Approval is one passkey confirmation.",
   },
   {
     n: "04",
     icon: "/brand/icon-chart.png",
-    title: "Receipt, settled on-chain",
-    body: "The invoice flips to paid, your webhook fires, and the receipt links the actual Base transaction.",
+    title: "Settlement confirmed",
+    body: "bill402 verifies settlement, records the transaction hash, delivers your webhook, and publishes the receipt.",
+  },
+];
+
+const FEATURES = [
+  {
+    kicker: "402",
+    title: "Exact payment requirements",
+    body: "Unpaid requests receive a standards-compliant 402 with the amount, asset, network, recipient, and Bazaar discovery metadata. No negotiation or custom integration required.",
+  },
+  {
+    kicker: "passkey",
+    title: "Approval without key exposure",
+    body: "PayBox validates the live requirements and requests a single passkey confirmation. bill402 and its plugin never sign, hold, or transmit private keys.",
+  },
+  {
+    kicker: "receipt",
+    title: "Settlement you can verify",
+    body: "Every payment produces a public receipt linked to its Base transaction, plus an optional webhook so your finance or fulfilment systems are notified immediately.",
   },
 ];
 
 const FAQ = [
   {
     q: "What is bill402?",
-    a: "bill402 is an invoicing service for the agent economy. You create an invoice and get an x402 pay URL. Any AI agent that speaks x402 can discover it, pay it in USDC on Base, and receive a receipt — no accounts, no card forms, no human in the loop required.",
+    a: "bill402 is invoicing infrastructure for the agent economy. A business creates a USD invoice and receives an x402 payment endpoint. Any x402-compatible client can retrieve the payment requirements, settle in USDC on Base, and receive a verifiable receipt.",
   },
   {
-    q: "How does the x402 payment work?",
-    a: "A client requests the invoice URL and receives an HTTP 402 with the exact payment requirements. It signs an EIP-3009 transferWithAuthorization for the amount, retries with the payment header, and bill402 verifies and settles through a facilitator. The invoice is marked paid and the receipt includes the on-chain transaction hash.",
+    q: "How does an x402 payment work?",
+    a: "A client requests the invoice endpoint and receives an HTTP 402 containing the exact requirements. It signs an EIP-3009 transferWithAuthorization, retries with the payment header, and bill402 verifies and settles through a facilitator. The invoice is marked paid and the receipt records the transaction hash.",
   },
   {
-    q: "Do I need an API key or a PayBox account to get paid?",
-    a: "No. There is nothing to sign up for and no secret to manage on the invoice side. Agents pay per request, and you approve the payment with a passkey via PayBox. bill402 never sees, holds, or signs with key material.",
+    q: "Do I need an API key or an account?",
+    a: "No. There is nothing to register and no credential to store. Agents pay per request, and the payer confirms each payment with a passkey in PayBox. bill402 never handles key material.",
   },
   {
-    q: "Which network and asset are used?",
-    a: "USDC on Base mainnet. In development the app defaults to Base Sepolia and the x402.org facilitator; production uses Base mainnet through the PayAI facilitator. Every settled invoice shows the real transaction hash on Basescan.",
+    q: "Which network and asset are supported?",
+    a: "USDC on Base. Development defaults to Base Sepolia with the x402.org facilitator; production runs on Base mainnet through the PayAI facilitator. Every settled invoice links to its transaction on Basescan.",
   },
   {
-    q: "Is it really on-chain, or just a database flag?",
-    a: "It is on-chain. Settlement happens through an x402 facilitator, which broadcasts the payment. The public receipt page links the Base transaction, and the status page reports only invoices that actually moved USDC.",
+    q: "Is settlement recorded on-chain?",
+    a: "Yes. Settlement is broadcast by an x402 facilitator and the resulting Base transaction is linked from the public receipt. The status page counts only invoices that settled.",
   },
   {
-    q: "What does it cost to use?",
-    a: "bill402 is open source under MIT. You pay only the network and facilitator costs of moving USDC, which are fractions of a cent on Base. There is no subscription and no platform fee.",
+    q: "What does it cost?",
+    a: "bill402 is open source under the MIT license. There is no subscription and no platform fee; you pay only the network and facilitator costs of moving USDC, which are fractions of a cent on Base.",
   },
   {
     q: "Can I self-host it?",
-    a: "Yes. Clone the repository, run npm install and npm run dev. Invoices persist to Postgres when DATABASE_URL is set, and fall back to in-memory storage otherwise, so it runs locally with zero configuration.",
+    a: "Yes. Clone the repository and run npm install followed by npm run dev. Invoices persist to Postgres when DATABASE_URL is set and fall back to an in-memory store otherwise, so the service runs locally with no configuration.",
   },
 ];
 
@@ -69,22 +87,21 @@ export default function Home() {
         {/* hero */}
         <section className="hero">
           <div className="hero-copy">
-            <span className="eyebrow">x402 invoicing for the agent economy</span>
+            <span className="eyebrow">Invoicing infrastructure for AI agents</span>
             <h1>Invoices any AI agent can pay.</h1>
             <p className="lede">
-              Create an invoice, get an x402 URL. Agents on PayBox discover it, you approve
-              with a passkey, and it settles in USDC on Base — webhook and on-chain receipt
-              included.
+              bill402 turns a USD invoice into an x402 endpoint. Agents on PayBox pay in USDC on
+              Base, and your systems receive a webhook and an on-chain receipt.
             </p>
             <div className="hero-actions">
               <Link href="/new" className="btn btn-primary">
-                Create your first invoice
+                Create an invoice
               </Link>
               <Link href="/status" className="btn btn-ghost">
-                See live stats
+                View service status
               </Link>
             </div>
-            <p className="hero-note">No accounts. No card forms. No human in the loop required.</p>
+            <p className="hero-note">No signup, no card details, settled in USDC.</p>
           </div>
 
           <div className="hero-visual">
@@ -92,7 +109,7 @@ export default function Home() {
             <img src="/brand/bg-fan.jpg" alt="" className="hero-bg" />
             <div className="hero-card">
               <div className="hero-card-top">
-                <span className="badge pending">awaiting payment</span>
+                <span className="badge pending">Awaiting payment</span>
                 <span className="muted" style={{ fontSize: 12 }}>
                   INV-8F2A
                 </span>
@@ -118,7 +135,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* trust strip */}
+        {/* specifications strip */}
         <section className="strip">
           <div className="strip-inner">
             <span className="pill pill-accent">x402 v2</span>
@@ -128,7 +145,7 @@ export default function Home() {
             <span className="pill">MIT licensed</span>
             <span style={{ marginLeft: "auto" }}>
               <a href="https://www.x402.org" target="_blank" rel="noreferrer">
-                An open protocol for machine payments ↗
+                x402 protocol specification ↗
               </a>
             </span>
           </div>
@@ -137,10 +154,10 @@ export default function Home() {
         {/* how it works */}
         <section className="section" id="how-it-works">
           <div className="section-head">
-            <h2>Four steps from invoice to settled USDC.</h2>
+            <h2>From invoice to settled USDC.</h2>
             <p>
-              The merchant never touches a wallet UI, and the agent never asks for a card.
-              x402 makes the payment part of the HTTP request.
+              Four steps, one endpoint. No card forms, no manual reconciliation, and no separate
+              payment integration to maintain.
             </p>
           </div>
 
@@ -159,49 +176,32 @@ export default function Home() {
           </div>
         </section>
 
-        {/* features */}
+        {/* capabilities */}
         <section className="section" style={{ paddingTop: 0 }}>
           <div className="section-head">
-            <h2>Built for bills, not for browsers.</h2>
+            <h2>Everything an invoice needs to settle.</h2>
             <p>
-              Everything a business needs to get paid by software, and nothing that requires a
-              human to fill in a form.
+              Payment requirements, approval, verification, receipts, and webhooks — consolidated
+              into a single hosted endpoint.
             </p>
           </div>
 
           <div className="feature-grid">
-            <article className="feature">
-              <span className="kicker">402</span>
-              <h3>A real payment challenge</h3>
-              <p>
-                The invoice URL is an x402 resource. Unpaid requests get an exact-scheme 402 with
-                the amount, asset, network, and Bazaar discovery metadata.
-              </p>
-            </article>
-            <article className="feature">
-              <span className="kicker">passkey</span>
-              <h3>Approval you can trust</h3>
-              <p>
-                PayBox shows the live requirements and asks for a passkey once. The plugin returns
-                an unsigned transaction proposal — it never signs, holds, or sees a key.
-              </p>
-            </article>
-            <article className="feature">
-              <span className="kicker">receipt</span>
-              <h3>Proof, not a promise</h3>
-              <p>
-                Every settlement produces a public receipt page linking the Base transaction, plus
-                an optional webhook so your own systems hear about it immediately.
-              </p>
-            </article>
+            {FEATURES.map((feature) => (
+              <article className="feature" key={feature.kicker}>
+                <span className="kicker">{feature.kicker}</span>
+                <h3>{feature.title}</h3>
+                <p>{feature.body}</p>
+              </article>
+            ))}
           </div>
         </section>
 
         {/* FAQ */}
         <section className="section" id="faq" style={{ paddingTop: 0 }}>
           <div className="section-head">
-            <h2>Questions, answered plainly.</h2>
-            <p>If something is still unclear, open an issue on GitHub.</p>
+            <h2>Frequently asked questions</h2>
+            <p>Technical details for evaluating or deploying bill402.</p>
           </div>
 
           <div className="faq">
@@ -219,13 +219,13 @@ export default function Home() {
           <section className="cta">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/brand/bg-fan.jpg" alt="" className="cta-bg" />
-            <h2>Send your first agent invoice today.</h2>
+            <h2>Start invoicing in minutes.</h2>
             <p>
-              Ten seconds to create it. One URL to get paid. Real USDC on Base, with a receipt
+              Create an invoice, share the payment URL, and settle in USDC on Base with a receipt
               anyone can verify.
             </p>
             <Link href="/new" className="btn btn-white">
-              Get started
+              Create an invoice
             </Link>
           </section>
         </div>

@@ -15,11 +15,11 @@ export function SiteHeader() {
         <nav className="site-nav" aria-label="Main">
           <a href="/#how-it-works">How it works</a>
           <a href="/#faq">FAQ</a>
-          <Link href="/status">Live stats</Link>
+          <Link href="/status">Service status</Link>
         </nav>
 
         <Link href="/new" className="btn btn-primary btn-sm">
-          Get started
+          Create invoice
         </Link>
       </div>
     </header>

@@ -1,48 +1,43 @@
-# demo video script — 50 seconds
+# Product demo — 50 seconds
 
-post to X. screen recording at 1440p+, zoom 110% in editor, captions burned in.
-the plugin is the submission — every shot should show paybox or the plugin doing work.
+Screen recording at 1440p or higher, 110% zoom in the editor, captions burned in. Every shot should show the product doing real work: the PayBox plugin, the invoice endpoint, or the receipt.
 
-## shot list
+## Shot list
 
-**shot 1 — the problem (0:00-0:06)**
-screen: a chat with an agent. caption: "businesses can't charge AI agents. agents can't pay invoices."
-voice/caption: "ai agents move money now. but a business still can't send them an invoice."
+**Shot 1 — The problem (0:00–0:06)**
+Screen: a chat with an agent. Caption: "Businesses cannot invoice AI agents."
+Voice: "AI agents move money now, but most businesses still have no way to bill them."
 
-**shot 2 — the plugin in paybox (0:06-0:14)**
-screen: paybox marketplace / plugin detail: bill402 with its 3 tools (create_invoice, pay_invoice, check_invoice).
-caption: "i built bill402: invoicing agents can actually pay. usdc on base, x402."
+**Shot 2 — The product (0:06–0:14)**
+Screen: PayBox marketplace listing for bill402 with its three tools — `create_invoice`, `pay_invoice`, `check_invoice`.
+Caption: "bill402: invoices any AI agent can pay. USDC on Base, x402."
 
-**shot 3 — create the invoice (0:14-0:22)**
-screen: agent chat. prompt: "create an invoice for acme coffee, 100 bags of espresso beans, $0.05"
-agent calls create_invoice → result card with pay url + receipt url appears.
-caption: "one tool call. ten seconds. one url."
+**Shot 3 — Create the invoice (0:14–0:22)**
+Screen: agent chat. Prompt: "Create an invoice for Acme Coffee, 100 bags of espresso beans, $0.05."
+The agent calls `create_invoice` and returns a payment URL and receipt URL.
+Caption: "One tool call. One payment URL."
 
-**shot 4 — the agent pays (0:22-0:38) — THE HERO SHOT**
-screen: same chat. prompt: "pay it"
-agent calls pay_invoice → paybox x402 proposal card: "pay $0.05 usdc on base" → CUT TO PHONE: passkey tap
-→ back to screen: agent calls check_invoice → "paid. transaction 0x… on base."
-caption: "the agent requests. i approve with one tap. settled on-chain."
+**Shot 4 — The payment (0:22–0:38)**
+Screen: same chat. Prompt: "Pay it."
+The agent calls `pay_invoice`; PayBox shows the x402 proposal — "Pay $0.05 USDC on Base" — then cut to the phone for a passkey confirmation. Back to the screen: `check_invoice` reports paid with the transaction hash.
+Caption: "The agent requests. You approve with one passkey. Settled on-chain."
 
-**shot 5 — the proof (0:38-0:46)**
-screen: receipt page with status badge "paid", tx hash link. click through to basescan.
-then /status page: settled count ticking, volume in USD.
-caption: "every invoice leaves an on-chain receipt. no dead endpoints."
+**Shot 5 — The proof (0:38–0:46)**
+Screen: receipt page with the paid badge and the transaction link, then the Basescan transaction, then the status page with settled count and volume.
+Caption: "Every settlement leaves a public, on-chain receipt."
 
-**shot 6 — the pitch (0:46-0:50)**
-screen: github repo + landing page side by side. caption:
-"any business, agent-payable in 60 seconds. x402 + paybox. merchant tools track."
+**Shot 6 — The close (0:46–0:50)**
+Screen: repository and landing page side by side.
+Caption: "Any business, agent-payable in a minute. x402 and PayBox."
+Repository URL on screen: github.com/thesithunyein/bill402
 
-## production notes
+## Production notes
 
-- record shot 4 LAST after rehearsing twice; if the live paid call fails once, cut it out and re-run — never show a retry
-- phone passkey shot: film the phone screen directly (not through glass), 2 taps max visible
-- keep all captions lowercase, no hashtags in-video
-- music: none or minimal; judges watch on mute
-- repo url on screen in shot 6: github.com/thesithunyein/bill402
+- Record shot 4 last, after two rehearsals. If a live payment fails, restart rather than showing a retry.
+- Film the phone screen directly; two taps maximum.
+- Use sentence case for captions. No hashtags in the video.
+- Minimal or no music; the video is often watched muted.
 
-# X caption (copy-paste ready, post video in main tweet, link in first reply)
+## Social caption
 
-businesses still can't invoice an ai agent. so i built the missing half: bill402,
-a paybox plugin where you create an invoice and any agent pays it in usdc on base
-via x402. on-chain receipt included. merchant tools track, @PayBox hackathon
+Businesses still cannot invoice an AI agent. bill402 closes that gap: create a USD invoice, share the x402 payment URL, and any agent settles it in USDC on Base with an on-chain receipt.

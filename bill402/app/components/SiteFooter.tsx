@@ -15,7 +15,7 @@ export function SiteFooter() {
             </span>
           </Link>
           <p>
-            Invoices any AI agent can pay. Built on x402, settled in USDC on Base.
+            Invoicing infrastructure for AI agents. Built on x402, settled in USDC on Base.
           </p>
         </div>
 
@@ -26,7 +26,7 @@ export function SiteFooter() {
               <Link href="/new">Create an invoice</Link>
             </li>
             <li>
-              <Link href="/status">Live stats</Link>
+              <Link href="/status">Service status</Link>
             </li>
             <li>
               <a href="/#how-it-works">How it works</a>
@@ -64,7 +64,7 @@ export function SiteFooter() {
         </div>
 
         <div className="footer-col">
-          <h4>Project</h4>
+          <h4>Resources</h4>
           <ul>
             <li>
               <a href="https://github.com/thesithunyein/bill402/blob/main/LICENSE" target="_blank" rel="noreferrer">
@@ -92,7 +92,7 @@ export function SiteFooter() {
 
       <div className="footer-bottom">
         <span>© {YEAR} bill402 · MIT licensed</span>
-        <span>Built for MoonPay Hackathons — PayBox Chapter 1</span>
+        <span>USDC on Base · x402 v2</span>
       </div>
     </footer>
   );

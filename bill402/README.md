@@ -22,16 +22,14 @@
 
 ---
 
-Invoices any AI agent can pay. Create an invoice, get an x402 URL — agents on PayBox (or any x402 client) discover it, pay in USDC, you get the webhook and an on-chain receipt.
-
-Built for the MoonPay PayBox hackathon, Chapter 1 (Merchant tools).
+The bill402 service creates USD invoices and exposes each one as an x402 resource. A payer retrieves the payment requirements, settles in USDC on Base, and receives a public receipt linked to the on-chain transaction. Invoice creation, payment verification, settlement, webhooks, and receipts are handled by this application.
 
 ## Payment flow
 
 ```mermaid
 sequenceDiagram
   autonumber
-  participant M as Merchant / agent
+  participant M as Merchant
   participant B as bill402
   participant C as x402 client
   participant F as Facilitator
@@ -44,7 +42,7 @@ sequenceDiagram
   C->>B: retry with X-PAYMENT (EIP-3009)
   B->>F: verify + settle
   F->>H: transferWithAuthorization
-  H-->>F: tx hash
+  H-->>F: transaction hash
   F-->>B: settled
   B-->>C: 200 + receipt
   B->>M: webhook (optional)
@@ -52,39 +50,30 @@ sequenceDiagram
 
 ## Routes
 
-| Route | What it is |
+| Route | Description |
 | --- | --- |
-| `GET /` | Landing page — hero, how it works, FAQ, footer |
-| `GET /new` | Create-an-invoice form |
-| `GET /status` | Settled count, volume, network, facilitator |
+| `GET /` | Product overview — capabilities, flow, FAQ |
+| `GET /new` | Invoice creation form |
+| `GET /status` | Settlement metrics and payment configuration |
 | `GET /r/:id` | Public receipt with the on-chain transaction link |
-| `POST /api/invoices` | Create an invoice → `{ payUrl, receiptUrl, invoice }` |
-| `GET /api/invoices/:id` | x402 pay-per-call resource — returns `402` with requirements |
+| `POST /api/invoices` | Create an invoice → `{ payUrl, receiptUrl, invoice, network }` |
+| `GET /api/invoices/:id` | x402 resource — `402` with requirements, `200` once settled |
 
-## Structure
+`POST /api/invoices` accepts `merchant` (max 80 characters), `description` (max 200), `amountUsd` (0.01–10,000), and an optional https `webhookUrl`. Amounts are converted to USDC base units at six decimals.
 
-```text
-app/
-├── page.tsx                 # Landing
-├── new/page.tsx             # Invoice form (client)
-├── status/page.tsx          # Live stats
-├── r/[id]/page.tsx          # Receipt
-├── components/
-│   ├── SiteHeader.tsx
-│   └── SiteFooter.tsx
-├── api/invoices/
-│   ├── route.ts             # POST create
-│   └── [id]/route.ts        # GET x402 resource
-├── globals.css              # Design system (light, white default)
-├── icon.png                 # Favicon generated from the logo
-└── layout.tsx               # Metadata + Open Graph
-public/brand/                # Logo, hero background, step icons
-lib/
-├── store.ts                 # Postgres when DATABASE_URL is set, memory otherwise
-└── x402.ts                  # Network, facilitator, payment config
-```
+## Configuration
 
-## Run it
+| Variable | Required | Default | Purpose |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | No | in-memory store | Postgres connection string; the `invoices` table is created on first use |
+| `X402_NETWORK` | No | `eip155:84532` | CAIP-2 network id — `eip155:8453` for Base mainnet |
+| `PAY_TO` | Yes in production | empty | Recipient address for settled USDC |
+| `FACILITATOR_URL` | No | `https://x402.org/facilitator` | Facilitator used to verify and settle payments |
+| `NEXT_PUBLIC_BASE_URL` | Yes in production | `http://localhost:3000` | Public origin used in payment and receipt URLs |
+
+Production runs on Base mainnet with the PayAI facilitator and Postgres persistence. Without `DATABASE_URL`, invoices are stored in memory and reset when the process restarts.
+
+## Local development
 
 ```bash
 npm install
@@ -93,19 +82,41 @@ npm run build    # production build
 npm start
 ```
 
-No environment variables are required locally. Invoices fall back to an in-memory store; set `DATABASE_URL` to persist them.
+No environment variables are required to run locally. For a full payment test, set `PAY_TO` to a Base Sepolia address and create an invoice from `/new`.
 
-## Config
+## Structure
 
-Development defaults to Base Sepolia via the x402.org facilitator; production uses Base mainnet via the PayAI facilitator (no API key). Invoice storage uses Postgres when `DATABASE_URL` is set and memory otherwise.
+```text
+app/
+├── page.tsx                 # Product overview
+├── new/                     # Invoice form (client component)
+├── status/page.tsx          # Service status
+├── r/[id]/page.tsx          # Public receipt
+├── not-found.tsx            # Branded 404
+├── components/
+│   ├── SiteHeader.tsx
+│   └── SiteFooter.tsx
+├── api/invoices/
+│   ├── route.ts             # POST create
+│   └── [id]/route.ts        # GET x402 resource
+├── globals.css              # Design system
+├── icon.png                 # Favicon generated from the logo
+├── robots.ts                # robots.txt
+├── sitemap.ts               # sitemap.xml
+└── layout.tsx               # Metadata, Open Graph, social card
+public/brand/                # Logo, background, step icons, social card
+lib/
+├── store.ts                 # Postgres when DATABASE_URL is set, memory otherwise
+└── x402.ts                  # Network, facilitator, payment config
+```
 
 ## Stack
 
 Next.js 16 · React 19 · TypeScript · x402 v2 (`@x402/core`, `@x402/next`, `@x402/evm`, `@x402/extensions`) · USDC · Base
 
-## Docs
+## Documentation
 
 - [Security policy](../SECURITY.md)
-- [Code of conduct](../CODE_OF_CONDUCT.md)
 - [Contributing](../CONTRIBUTING.md)
+- [Code of conduct](../CODE_OF_CONDUCT.md)
 - [License](../LICENSE) — MIT

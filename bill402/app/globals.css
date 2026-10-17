@@ -769,7 +769,43 @@ form .btn {
   border: 1px solid #dcdefe;
   border-radius: var(--radius-sm);
   font-size: 13.5px;
-  word-break: break-all;
+}
+
+.result-field {
+  margin-top: 14px;
+}
+
+.copy-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.copy-row code,
+.copy-row a {
+  flex: 1 1 240px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.copy-btn {
+  flex: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 11px;
+  border-radius: 999px;
+  border: 1px solid #c9cdf7;
+  background: #fff;
+  color: var(--accent-ink);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.copy-btn:hover {
+  border-color: var(--accent);
+  background: #fff;
 }
 
 .result code {
@@ -811,7 +847,6 @@ form .btn {
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
-  text-transform: capitalize;
 }
 .badge.paid {
   background: #e8f7ef;
@@ -828,6 +863,93 @@ form .btn {
   letter-spacing: -0.04em;
   line-height: 1.05;
   margin: 6px 0 2px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.card-title {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.card-body {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  max-width: 62ch;
+}
+
+.card-body + .card-body {
+  margin-top: 10px;
+}
+
+.mono {
+  font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 12.5px;
+}
+
+.inline-link {
+  color: var(--accent-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.inline-code {
+  font-size: 12.5px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
+.result-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.aside-heading {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 34px 0 0;
+}
+
+.aside-heading + .steps {
+  margin-top: 14px;
+}
+
+.status-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.status-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  background: #16a34a;
+  box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.14);
+  flex: none;
 }
 
 .stats {
@@ -852,6 +974,10 @@ form .btn {
   color: var(--muted);
   font-size: 12px;
   margin-top: 3px;
+}
+
+.stats + .card {
+  margin-top: 26px;
 }
 
 .steps {

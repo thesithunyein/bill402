@@ -8,7 +8,7 @@
 
 <p align="center">
   <strong>Invoices any AI agent can pay.</strong><br />
-  Create an invoice, get an x402 URL. Agents discover it, you approve with a passkey, it settles in USDC on Base.
+  Invoicing infrastructure for the agent economy — built on x402, settled in USDC on Base.
 </p>
 
 <p align="center">
@@ -24,22 +24,34 @@
   <img alt="Next.js" src="https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=next.js&logoColor=white" />
   <img alt="React" src="https://img.shields.io/badge/React-19-087EA4?style=flat-square&logo=react&logoColor=white" />
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white" />
+  <img alt="Postgres" src="https://img.shields.io/badge/Postgres-optional-4169E1?style=flat-square&logo=postgresql&logoColor=white" />
   <img alt="MCP" src="https://img.shields.io/badge/MCP-PayBox%20plugin-6E56CF?style=flat-square" />
-  <img alt="PRs welcome" src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" />
 </p>
 
 ---
 
-## Why
+## Overview
 
-Agents can already **buy** things over x402, but businesses still can't **bill** them. bill402 is the missing half: a hosted x402 invoice endpoint with a public receipt page and an optional settlement webhook.
+bill402 turns a USD invoice into an HTTP endpoint that software can pay. A business creates an invoice, receives an x402 payment URL, and shares it with its customer — a person, an agent, or an automated billing system. The payer retrieves the exact payment requirements, settles in USDC on Base, and both sides get a public receipt linked to the on-chain transaction.
 
-- **Merchant** creates an invoice — name, description, USD amount.
-- **Agent** discovers the x402 URL on PayBox (or any x402 client) and pays.
-- **Buyer** approves once with a passkey. No card forms, no accounts, no human in the loop.
-- **Everyone** gets a receipt with the real Base transaction hash.
+There is no signup, no card form, and no credential to distribute to payers.
 
-Built for **MoonPay Hackathons — PayBox Chapter 1** (Merchant tools), Oct 16–17, 2026.
+**Core capabilities**
+
+- **Invoice API** — create an invoice from a form, a `curl` call, or an MCP tool.
+- **x402 payment endpoint** — returns a standards-compliant `402` with amount, asset, network, recipient, and Bazaar discovery metadata.
+- **Passkey approval** — the payer confirms once in PayBox; private keys are never exposed to the service.
+- **Settlement verification** — payments are verified and settled through an x402 facilitator on Base.
+- **Public receipts** — every settled invoice has a page with the transaction hash and payer.
+- **Webhooks** — an optional `invoice.settled` callback notifies your own systems.
+- **Status and metrics** — live counts and settled volume published at [`/status`](https://bill402.vercel.app/status).
+
+## How it works
+
+1. **Create an invoice.** Provide a business name, description, USD amount, and optional webhook URL.
+2. **Share the payment URL.** The API returns an x402 endpoint and a public receipt URL.
+3. **The payer settles.** A client requests the endpoint, receives a `402`, signs an EIP-3009 authorization, and retries. Approval is one passkey confirmation.
+4. **Settlement is recorded.** bill402 verifies settlement through the facilitator, stores the transaction, fires the webhook, and publishes the receipt.
 
 ## Architecture
 
@@ -54,12 +66,12 @@ flowchart LR
     API["POST /api/invoices<br/>create"]
     RES["GET /api/invoices/:id<br/>x402 resource"]
     REC["GET /r/:id<br/>public receipt"]
-    ST["GET /status<br/>live stats"]
+    ST["GET /status<br/>service status"]
     STORE[("Postgres<br/>or in-memory")]
   end
 
   F["x402 facilitator<br/>(settlement)"]
-  CH["Base mainnet<br/>USDC"]
+  CH["Base<br/>USDC"]
 
   A -->|"GET payUrl"| RES
   RES -->|"402 + payment requirements"| A
@@ -93,58 +105,89 @@ sequenceDiagram
   Agent->>Bill: GET /api/invoices/:id + X-PAYMENT
   Bill->>Fac: verify + settle
   Fac->>Chain: transferWithAuthorization (USDC)
-  Chain-->>Fac: tx hash
+  Chain-->>Fac: transaction hash
   Fac-->>Bill: settled
   Bill-->>Agent: 200 + receipt
   Bill->>Merchant: webhook (optional)
-  Merchant->>Bill: GET /r/:id (public receipt, tx hash)
+  Merchant->>Bill: GET /r/:id (public receipt, transaction hash)
 ```
 
-## Project structure
+## Product surface
 
-```text
-bill402/
-├── bill402/                        # Next.js 16 service (the live app)
-│   ├── app/
-│   │   ├── page.tsx                # Landing page — hero, how it works, FAQ
-│   │   ├── new/page.tsx            # Invoice creation form
-│   │   ├── status/page.tsx         # Live settled stats (on-chain proof)
-│   │   ├── r/[id]/page.tsx         # Public receipt with Basescan link
-│   │   ├── components/
-│   │   │   ├── SiteHeader.tsx      # Shared logo + navigation
-│   │   │   └── SiteFooter.tsx      # Shared footer
-│   │   ├── api/
-│   │   │   └── invoices/
-│   │   │       ├── route.ts        # POST — create an invoice
-│   │   │       └── [id]/route.ts   # GET — x402 pay-per-call resource
-│   │   ├── globals.css             # Design system (light, clean, max-width)
-│   │   ├── icon.png                # Generated favicon from the logo
-│   │   └── layout.tsx              # Metadata, Open Graph, Twitter cards
-│   ├── public/brand/
-│   │   ├── logo.png                # Main logo (transparent)
-│   │   ├── bg-fan.jpg              # Hero / CTA background
-│   │   ├── icon-rocket.png         # Create — speed
-│   │   ├── icon-code.png           # x402 endpoint
-│   │   ├── icon-check.png          # Passkey approval
-│   │   └── icon-chart.png          # Receipts / stats
-│   ├── lib/
-│   │   ├── store.ts                # Invoice persistence (Postgres | memory)
-│   │   └── x402.ts                 # Network, facilitator, payment config
-│   └── package.json
-├── bill402-plugin/                 # PayBox marketplace plugin (MCP)
-│   ├── src/
-│   │   ├── plugin.ts               # Tool definitions
-│   │   └── paybox.ts               # PayBox x402 integration
-│   ├── examples/                   # Base transfer, repo info, x402 request
-│   ├── scripts/                    # Conformance + report harness
-│   └── paybox-plugin.json          # Marketplace manifest
-├── LICENSE                         # MIT
-├── SECURITY.md                     # Threat model + disclosure policy
-├── CODE_OF_CONDUCT.md              # Contributor Covenant 2.1
-└── CONTRIBUTING.md                 # Local setup and PR expectations
+| Route | Method | Description |
+| --- | --- | --- |
+| `/` | GET | Product overview and documentation |
+| `/new` | GET | Invoice creation form |
+| `/status` | GET | Service status, settlement metrics, and payment configuration |
+| `/r/:id` | GET | Public receipt with the on-chain transaction link |
+| `/api/invoices` | POST | Create an invoice → `{ payUrl, receiptUrl, invoice, network }` |
+| `/api/invoices/:id` | GET | x402 resource — `402` with exact-scheme USDC requirements, `200` once settled |
+
+### Create an invoice
+
+```bash
+curl -X POST https://bill402.vercel.app/api/invoices \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "merchant": "Acme Coffee",
+    "description": "100 bags of espresso beans",
+    "amountUsd": 49.5,
+    "webhookUrl": "https://acme.example/hooks/paid"
+  }'
 ```
 
-## Quickstart
+```json
+{
+  "invoice": {
+    "id": "8f2a1c4d9b30",
+    "merchant": "Acme Coffee",
+    "description": "100 bags of espresso beans",
+    "amountUsd": 49.5,
+    "status": "pending"
+  },
+  "payUrl": "https://bill402.vercel.app/api/invoices/8f2a1c4d9b30",
+  "receiptUrl": "https://bill402.vercel.app/r/8f2a1c4d9b30",
+  "network": "eip155:8453"
+}
+```
+
+A `GET` on the pay URL without a payment header returns `402` with the requirements: scheme `exact`, network `eip155:8453`, the USDC asset address, the amount in base units, and the configured recipient.
+
+### Webhook payload
+
+```json
+{
+  "event": "invoice.settled",
+  "invoice": {
+    "id": "8f2a1c4d9b30",
+    "merchant": "Acme Coffee",
+    "description": "100 bags of espresso beans",
+    "amountUsd": 49.5,
+    "status": "paid",
+    "paidAt": "2026-10-18T00:00:00.000Z",
+    "receiptUrl": "https://bill402.vercel.app/r/8f2a1c4d9b30"
+  },
+  "settlement": {
+    "transaction": "0x…",
+    "network": "eip155:8453",
+    "payer": "0x…"
+  }
+}
+```
+
+## Configuration
+
+| Variable | Required | Default | Purpose |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | No | in-memory store | Postgres connection string for invoice persistence |
+| `X402_NETWORK` | No | `eip155:84532` | CAIP-2 network id — `eip155:8453` for Base mainnet |
+| `PAY_TO` | Yes in production | empty | Recipient address for settled USDC |
+| `FACILITATOR_URL` | No | `https://x402.org/facilitator` | x402 facilitator used to verify and settle |
+| `NEXT_PUBLIC_BASE_URL` | Yes in production | `http://localhost:3000` | Public origin used in payment and receipt URLs |
+
+`DATABASE_URL` is optional locally: without it, invoices are held in memory and reset on restart. In production the service uses Postgres so invoices and receipts survive deployments.
+
+## Local development
 
 ```bash
 git clone https://github.com/thesithunyein/bill402.git
@@ -153,48 +196,59 @@ npm install
 npm run dev          # http://localhost:3000
 ```
 
-No environment variables are required to run locally — invoices fall back to an in-memory store. For production, set `DATABASE_URL` and the x402 facilitator configuration described in [`bill402/README.md`](./bill402/README.md).
-
 ```bash
 npm run build && npm start   # production build
+npx tsc --noEmit             # type check
 ```
 
-## API
+## Deployment
 
-| Route | Method | What it does |
-| --- | --- | --- |
-| `/` | GET | Landing page |
-| `/new` | GET | Invoice creation form |
-| `/status` | GET | Settled count, volume, network, facilitator |
-| `/r/:id` | GET | Public receipt with on-chain transaction link |
-| `/api/invoices` | POST | Create an invoice → `{ payUrl, receiptUrl, invoice }` |
-| `/api/invoices/:id` | GET | x402 resource — `402` with exact-scheme USDC requirements |
+The service deploys to Vercel as a standard Next.js application. For Base mainnet, set `X402_NETWORK=eip155:8453`, `PAY_TO`, `FACILITATOR_URL`, `DATABASE_URL`, and `NEXT_PUBLIC_BASE_URL` in the project environment, then deploy from the `bill402/` directory.
+
+## Project structure
+
+```text
+bill402/
+├── bill402/                        # Next.js 16 service (the deployed app)
+│   ├── app/
+│   │   ├── page.tsx                # Product overview
+│   │   ├── new/                    # Invoice creation
+│   │   ├── status/                 # Service status and metrics
+│   │   ├── r/[id]/                 # Public receipt
+│   │   ├── components/             # Shared header and footer
+│   │   ├── api/invoices/           # Create + x402 resource routes
+│   │   ├── robots.ts               # robots.txt
+│   │   └── sitemap.ts              # sitemap.xml
+│   ├── lib/
+│   │   ├── store.ts                # Invoice persistence (Postgres | memory)
+│   │   └── x402.ts                 # Network, facilitator, payment config
+│   └── public/brand/               # Logo, backgrounds, social card
+├── bill402-plugin/                 # PayBox marketplace plugin (MCP)
+├── SECURITY.md                     # Threat model and disclosure policy
+├── CONTRIBUTING.md                 # Development and review expectations
+├── CODE_OF_CONDUCT.md              # Contributor Covenant 2.1
+└── LICENSE                         # MIT
+```
 
 ## PayBox plugin
 
-The plugin uses PayBox's native x402 flow. `pay_invoice` fetches the invoice's live requirements and returns an **unsigned** `io.paybox/transactionProposal`. PayBox validates it against the live `402`, the user approves with a passkey, PayBox pays, and retries the invoice URL. The tool never signs, holds, or sees key material.
+The MCP plugin connects the marketplace to bill402. `pay_invoice` fetches the live requirements and returns an **unsigned** `io.paybox/transactionProposal`; PayBox validates it against the `402`, the user approves with a passkey, and PayBox settles and retries the invoice URL. The plugin never signs, stores, or transmits key material.
 
 ```text
-Tools: create_invoice · pay_invoice · check_invoice
-Outbound hosts: bill402.vercel.app only
+Tools:            create_invoice · pay_invoice · check_invoice
+Outbound hosts:   bill402.vercel.app
 Secrets required: none
 ```
 
 ## Documentation
 
-- [Service docs](./bill402/README.md) — endpoints, configuration, persistence
-- [Plugin docs](./bill402-plugin/README.md) — tools, conformance, marketplace manifest
+- [Service documentation](./bill402/README.md) — endpoints, configuration, persistence
+- [Plugin documentation](./bill402-plugin/README.md) — tools, conformance, manifest
 - [Security policy](./SECURITY.md) — threat model and private disclosure
-- [Code of conduct](./CODE_OF_CONDUCT.md) — Contributor Covenant 2.1
 - [Contributing](./CONTRIBUTING.md) — local setup and review expectations
+- [Code of conduct](./CODE_OF_CONDUCT.md) — Contributor Covenant 2.1
 - [License](./LICENSE) — MIT
 
 ## License
 
 MIT © thesithunyein. See [LICENSE](./LICENSE).
-
----
-
-<p align="center">
-  <sub>Built for MoonPay Hackathons — PayBox Chapter 1 · x402 v2 · USDC on Base</sub>
-</p>
