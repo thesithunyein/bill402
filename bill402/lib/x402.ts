@@ -18,6 +18,13 @@ const USDC: Record<string, string> = {
   "eip155:8453": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // base mainnet
 };
 
+// EIP-712 domain of the settlement token. x402 exact/EIP-3009 clients refuse to sign
+// without it, so it must ride in every 402 response's payment requirements.
+const EIP712: Record<string, { name: string; version: string }> = {
+  "eip155:84532": { name: "USDC", version: "2" },
+  "eip155:8453": { name: "USD Coin", version: "2" },
+};
+
 const NETWORK_LABELS: Record<string, string> = {
   "eip155:8453": "Base",
   "eip155:84532": "Base Sepolia",
@@ -57,7 +64,7 @@ export function buildRequirements(invoice: Invoice): PaymentRequirements {
     amount: invoice.amountUnits,
     payTo: PAY_TO,
     maxTimeoutSeconds: 120,
-    extra: {},
+    extra: EIP712[NETWORK] ?? {},
   };
 }
 

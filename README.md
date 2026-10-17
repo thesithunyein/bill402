@@ -46,6 +46,21 @@ There is no signup, no card form, and no credential to distribute to payers.
 - **Webhooks** — an optional `invoice.settled` callback notifies your own systems.
 - **Status and metrics** — live counts and settled volume published at [`/status`](https://bill402.vercel.app/status).
 
+## Settled on mainnet
+
+The service has taken a real payment end to end: x402 `exact` with an EIP-3009 authorization, settled in USDC on Base — no testnet, no simulation.
+
+| | |
+|---|---|
+| Invoice | [`ad5019c8e24e`](https://bill402.vercel.app/r/ad5019c8e24e) — $0.05, Acme Coffee Co |
+| Transaction | [`0x7ff6919f…ba851c`](https://basescan.org/tx/0x7ff6919f8b825de8b18db1b4f483021ce237ab148d46b3a4cbb98f5654ba851c) |
+| Block | 52,740,412 |
+| Transfer | 0.05 USDC to `0x7A35…9Da2` |
+
+The payer that produced it is in `bill402/scripts/settle.mjs`: it reads the live `402`, signs the authorization, and prints the settlement transaction.
+
+Every `402` carries the settlement token's EIP-712 domain (`extra.name`, `extra.version`). Without it an EIP-3009 client cannot build a valid signature, so the field is part of the payment requirements, not an implementation detail.
+
 ## How it works
 
 1. **Create an invoice.** Provide a business name, description, USD amount, and optional webhook URL.
@@ -151,7 +166,7 @@ curl -X POST https://bill402.vercel.app/api/invoices \
 }
 ```
 
-A `GET` on the pay URL without a payment header returns `402` with the requirements: scheme `exact`, network `eip155:8453`, the USDC asset address, the amount in base units, and the configured recipient.
+A `GET` on the pay URL without a payment header returns `402` with the requirements: scheme `exact`, network `eip155:8453`, the USDC asset address, the amount in base units, the configured recipient, and the token's EIP-712 domain (`extra.name`, `extra.version`) — without that domain an EIP-3009 client cannot build a valid `transferWithAuthorization` signature.
 
 ### Webhook payload
 
@@ -174,6 +189,18 @@ A `GET` on the pay URL without a payment header returns `402` with the requireme
   }
 }
 ```
+
+## Settle an invoice
+
+`bill402/scripts/settle.mjs` is a real x402 `exact` payer: it reads the live 402, signs an EIP-3009 authorization, and retries with the payment header.
+
+```bash
+node scripts/settle.mjs --new-key          # throwaway payer key in .payer-key (mode 600, gitignored)
+node scripts/settle.mjs <invoiceId>        # checks balance first, then pays
+node scripts/settle.mjs <invoiceId> --dry-run   # sign only, send nothing
+```
+
+It pays USDC on Base and prints the settlement transaction, the receipt URL, and a Basescan link. It refuses to sign when the payer's balance is short of the invoice.
 
 ## Configuration
 
