@@ -120,7 +120,7 @@ class PostgresStore implements Store {
     const rows = await this.sql`
       SELECT COUNT(*)::int AS created,
              COUNT(*) FILTER (WHERE status = 'paid')::int AS paid,
-             COALESCE(SUM(amount_units) FILTER (WHERE status = 'paid'), 0)::text AS volume
+             COALESCE(SUM(amount_units::bigint) FILTER (WHERE status = 'paid'), 0)::text AS volume
       FROM invoices`;
     return {
       invoicesCreated: rows[0].created,

@@ -18,6 +18,16 @@ const USDC: Record<string, string> = {
   "eip155:8453": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", // base mainnet
 };
 
+const NETWORK_LABELS: Record<string, string> = {
+  "eip155:8453": "Base",
+  "eip155:84532": "Base Sepolia",
+};
+
+/** Human-readable network name for UI, falling back to the raw CAIP-2 id. */
+export function networkLabel(network: string = NETWORK): string {
+  return NETWORK_LABELS[network] ?? network;
+}
+
 export function usdcForNetwork(network: string): string {
   const asset = USDC[network];
   if (!asset) throw new Error(`no USDC address configured for ${network}`);
