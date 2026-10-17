@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://bill402.vercel.app">
-    <img src="./public/brand/logo.png" alt="bill402 logo" width="110" />
+    <img src="./public/brand/logo-outline.png" alt="bill402 logo" width="110" />
   </a>
 </p>
 

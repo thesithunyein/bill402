@@ -6,7 +6,7 @@ export function SiteHeader() {
       <div className="site-header-inner">
         <Link href="/" className="brand" aria-label="bill402 home">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/brand/logo.png" alt="" className="brand-mark" width={28} height={27} />
+          <img src="/brand/logo-outline.png" alt="" className="brand-mark" width={30} height={30} />
           <span className="brand-word">
             bill<span>402</span>
           </span>

@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://bill402.vercel.app">
-    <img src="./bill402/public/brand/logo.png" alt="bill402 logo" width="132" />
+    <img src="./bill402/public/brand/logo-outline.png" alt="bill402 logo" width="120" />
   </a>
 </p>
 
@@ -238,7 +238,10 @@ The MCP plugin connects the marketplace to bill402. `pay_invoice` fetches the li
 Tools:            create_invoice · pay_invoice · check_invoice
 Outbound hosts:   bill402.vercel.app
 Secrets required: none
+Artifact:         bill402-plugin/dist/plugin.mjs (400,067 bytes · sha256 43c265c7…)
 ```
+
+Verified with the starter toolchain (Node 24.21.0, pnpm 11.11.0): `pnpm test` type-checks, builds twice and requires identical bytes, then runs conformance — `status: "passed"`, three tools discovered, sample call passed. The tools were also exercised against the live service, including the pending-status read and the unsigned x402 proposal.
 
 ## Documentation
 
